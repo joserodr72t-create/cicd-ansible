@@ -80,8 +80,8 @@ jobs:
           key: ${{ secrets.CONTROL_HOST_SSH_KEY }}
           port: ${{ secrets.CONTROL_HOST_PORT }}
           script: |
+            source ~/ansible-venv/bin/activate
             cd ~/ansible-gcp
-            ansenv
             ansible-playbook -i inventory/gcp.yml \
               playbooks/deploy-bot.yml \
               --extra-vars "image_tag=${{ github.sha }}"
