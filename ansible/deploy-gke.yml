@@ -72,20 +72,28 @@
 
     # ─────────────────────────────────────
     # Verificar estado del despliegue
+    # (Autopilot puede tardar varios minutos
+    #  en aprovisionar nodos la primera vez)
     # ─────────────────────────────────────
     - name: Esperar a que el backend esté disponible
       command: >
-        kubectl rollout status deployment/agent-backend
-          -n {{ namespace }}
-          --timeout=120s
+        kubectl get deployment agent-backend -n {{ namespace }}
+          -o jsonpath='{.status.availableReplicas}'
       register: backend_status
+      retries: 20
+      delay: 30
+      until: backend_status.stdout | default('0') | int >= 1
+      changed_when: false
 
     - name: Esperar a que el frontend esté disponible
       command: >
-        kubectl rollout status deployment/agent-frontend
-          -n {{ namespace }}
-          --timeout=120s
+        kubectl get deployment agent-frontend -n {{ namespace }}
+          -o jsonpath='{.status.availableReplicas}'
       register: frontend_status
+      retries: 20
+      delay: 30
+      until: frontend_status.stdout | default('0') | int >= 1
+      changed_when: false
 
     - name: Obtener pods en ejecución
       command: kubectl get pods -n {{ namespace }} -o wide
